@@ -6,8 +6,6 @@ if (!file_exists($targetDir)) {
     mkdir($targetDir, 0777, true);
 }
 
-$maxSize = 10 * 1024 * 1024;
-
 function generateRandomString($length = 5) {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
     $randomString = '';
@@ -29,11 +27,6 @@ if (!isset($_FILES["fileToUpload"])) {
 
 $originalName = $_FILES["fileToUpload"]["name"];
 $fileType = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-
-if ($_FILES["fileToUpload"]["size"] > $maxSize) {
-    echo json_encode(["status" => "error", "message" => "Ukuran file maksimal 10MB"]);
-    exit;
-}
 
 do {
     $extension = $fileType ? "." . $fileType : "";
