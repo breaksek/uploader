@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BREAKSEK UPLOADER</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        body { 
+            background-color: #0f172a; 
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .swal2-popup {
+            background: #1e293b !important;
+            color: #f1f5f9 !important;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px !important;
+        }
+        .swal2-title, .swal2-html-container {
+            color: #f1f5f9 !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen text-slate-200 px-4">
+
+    <div class="w-full max-w-md p-8 glass rounded-3xl shadow-2xl border-t border-white/10">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-white mb-2 tracking-tight">BREAKSEK <span class="text-blue-500">UPLOADER</span></h1>
+            <p class="text-slate-400 text-sm">Penyimpanan awan cepat & gratis</p>
+        </div>
+
+        <form id="uploadForm" class="space-y-6">
+            <div class="relative group">
+                <label for="fileToUpload" class="flex flex-col items-center justify-center w-full h-44 border-2 border-dashed border-slate-600 rounded-2xl cursor-pointer hover:border-blue-500 hover:bg-slate-800/50 transition-all duration-300">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <div class="p-4 bg-slate-800 rounded-full mb-3 group-hover:bg-blue-600/20 transition-colors">
+                            <svg class="w-8 h-8 text-slate-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                        </div>
+                        <p id="file-name" class="text-sm text-slate-400 italic px-6 text-center">Ketuk untuk memilih berkas...</p>
+                    </div>
+                    <input type="file" name="fileToUpload" id="fileToUpload" class="hidden" required onchange="updateFileName()">
+                </label>
+            </div>
+
+            <button type="submit" id="submitBtn" class="w-full py-4 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg transition-all transform active:scale-95 flex justify-center items-center gap-2">
+                <i class="fas fa-paper-plane text-sm"></i>
+                <span>Unggah Sekarang</span>
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <a href="./Dokumentasi" class="text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                <i class="fas fa-book-open mr-1"></i> Lihat Dokumentasi API
+            </a>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-slate-700/50 text-center text-[10px] text-slate-500 uppercase tracking-[0.2em]">
+            Format: PNG, JPG, GIF, ZIP (Maks 10MB)
+        </div>
+    </div>
+
+    <script>
+        function updateFileName() {
+            const input = document.getElementById('fileToUpload');
+            const info = document.getElementById('file-name');
+            if (input.files.length > 0) {
+                info.textContent = input.files[0].name;
+                info.classList.remove('text-slate-400');
+                info.classList.add('text-blue-400', 'font-bold');
+            }
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            Swal.fire({
+                title: 'Sedang Mengunggah...',
+                html: 'Mohon tunggu sebentar ya, Sayang.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const response = await fetch('upload.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil Diunggah!',
+                        html: `
+                            <div class="text-left bg-slate-900 p-4 rounded-xl border border-slate-700 mt-4 font-mono text-xs overflow-hidden">
+                                <p class="text-blue-400 mb-2 truncate"><strong>File:</strong> ${result.file_name}</p>
+                                <p class="text-emerald-400 break-all leading-relaxed"><strong>URL:</strong> https://breaksekup.unaux.com/${result.url}</p>
+                                <p class="text-slate-500 mt-3 italic text-[10px]">Author: ${result.author}</p>
+                            </div>
+                        `,
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="fas fa-copy mr-2"></i> Salin URL',
+                        cancelButtonText: 'Tutup',
+                        confirmButtonColor: '#2563eb',
+                        cancelButtonColor: '#475569',
+                        reverseButtons: true
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            navigator.clipboard.writeText('https://breaksekup.unaux.com/' + result.url);
+                            
+                            Swal.fire({
+                                toast: true,
+                                position: 'top',
+                                icon: 'success',
+                                title: 'Tautan disalin!',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: result.message || 'Gagal mengunggah berkas.',
+                        confirmButtonColor: '#ef4444'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kesalahan Sistem',
+                    text: 'Koneksi terputus atau ukuran berkas melampaui batas.',
+                    confirmButtonColor: '#475569'
+                });
+            }
+        });
+    </script>
+</body>
+</html>
